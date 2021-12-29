@@ -1,0 +1,65 @@
+h1 {
+    text-align: center;
+}
+ 
+.main-container {
+    display : flex;
+    justify-content: center;
+    height : 100%;
+}
+
+.chat-container {
+    display : flex;
+    flex-direction: column;
+    width : 700px;
+    height : 70vh;
+    background-color: green;
+    align-items: center;
+    justify-content: center;
+    margin : 10px;
+}
+
+.user-container {
+    display : flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background-color: grey;
+    width : 300px;
+    height : 70vh;
+    margin : 10px;
+}
+
+.chatbox {
+    background-color: white;
+    width : 600px;
+    height: 90%;
+    margin : 10px;
+    overflow: scroll;
+}
+
+.sendbox {
+    display : flex;
+    justify-content: center;
+    width : 1000px;
+    height: 10%;
+}
+
+.message-input{
+    width : 500px;
+}
+
+.userlistbox {
+    background-color: white;
+    width : 250px;
+    height: 90%;
+    margin : 10px;
+    overflow: scroll;
+}
+
+.changenickbox {
+    display : flex;
+    justify-content: center;
+    width : 250px;
+    height : 10%;
+}
