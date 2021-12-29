@@ -1,2 +1,2 @@
-# realtime-webchar
-레블업 인턴 백엔드 프로젝트입니다.
+# realtime-webchat
+aiohttp기반 실시간 채팅 웹페이지입니다.
