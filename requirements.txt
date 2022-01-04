@@ -1,2 +1,4 @@
 aiohttp>=3.8.0
 aiohttp-jinja2>=1.5
+aioredis>=2.0.1
+aiohttp_session>=2.10

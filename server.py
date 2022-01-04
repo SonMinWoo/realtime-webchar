@@ -1,20 +1,36 @@
+import aiohttp
 from aiohttp import web
 from aiohttp.web_request import Request
 from aiohttp.http_websocket import WSCloseCode, WSMessage
 from pathlib import Path
 from collections import defaultdict
-import random
 from typing import Dict, Tuple, Union
 import jinja2
 import aiohttp_jinja2
+import random
+import aioredis
+
+
 
 here = Path(__file__).resolve().parent
+
+async def redis_conn(key):
+    redis = aioredis.from_url("redis_service://localhost")
+    key = 'cookie'+key
+    value = await redis.get(key)
+    if value == None:
+        await redis.set(key, "visited")
+        return "new"
+    else:
+        return "visited"
+    redis.close()
 
 async def index_handler(request: Request) -> web.Response:
     context = {}
     response = aiohttp_jinja2.render_template("index.html", request, context=context)
     
     return response
+
 
 async def broadcast(app: web.Application, message: dict) -> None:
     for x in app['websockets'].items():
@@ -41,7 +57,11 @@ async def ws_chat(request: Request) -> web.WebSocketResponse:
     if not ready:
         await current_websocket.close(code=WSCloseCode.PROTOCOL_ERROR)
     await current_websocket.prepare(request)
+
+
     user = f'User{random.randint(0, 999999)}'
+    
+
 
     await current_websocket.send_json({'action': 'connecting', 'user': user})
 
@@ -55,7 +75,7 @@ async def ws_chat(request: Request) -> web.WebSocketResponse:
     try:
         async for message in current_websocket:  
             if isinstance(message, WSMessage):
-                if message.type == web.WSMsgType.text:  #
+                if message.type == web.WSMsgType.text:  
                     message_json = message.json()
                     action = message_json.get('action')
                     if action not in ['set_nickname', 'new_message', 'user_list']:
@@ -83,6 +103,8 @@ async def ws_chat(request: Request) -> web.WebSocketResponse:
 
                     elif action == 'user_list':
                         user_list =  {'action': 'user_list', 'success': True, 'users': list(app['websockets'].keys())}
+                        nowuser = message_json.get('cookie')
+                        print(await redis_conn(nowuser))
                         await current_websocket.send_json(user_list)
 
                     elif action == 'new_message':
@@ -90,6 +112,7 @@ async def ws_chat(request: Request) -> web.WebSocketResponse:
                             app=request.app,
                             message={'action': 'new_message', 'message': message_json.get('message'), 'user': user},
                         )
+
     finally:
         request.app['websockets'].pop(user)
 
@@ -98,6 +121,7 @@ async def ws_chat(request: Request) -> web.WebSocketResponse:
     )
 
     return current_websocket
+
 
 app = web.Application()
 aiohttp_jinja2.setup(

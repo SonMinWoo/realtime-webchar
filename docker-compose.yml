@@ -1,0 +1,9 @@
+version: '2.1'
+
+services:
+  redis_service:
+    image: 'redis'
+  test:
+    build: .
+    ports: 
+      - "8090:8080"

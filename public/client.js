@@ -3,17 +3,19 @@ const nickForm = document.querySelector("#nickname");
 const messageForm = document.querySelector("#message");
 const chatbox = document.querySelector(".chatbox");
 const socket = new WebSocket(`ws://${window.location.host}/chat`)
+
 let userList = document.querySelector(".userlist");
 let nownick = "";
 
 function makeMessage(action, payload) {
+    console.log(document.cookie.split(";")[0])
     let msg = {};
     if (action === "new_message") {
         msg = {"action": action, "message" : payload};
     } else if (action === "nick") {
         msg = {"action": "set_nickname", "nick" : payload};
     } else if (action === "new_connect") {
-        msg = {"action": "user_list"};
+        msg = {"action": "user_list", "cookie": payload};
     } else {
         msg = {"action": action};
     }
@@ -50,8 +52,9 @@ socket.addEventListener("message", (message) => {
             socket.send(makeMessage("user_list", ""));
             break;
         case 'connecting':
-            socket.send(makeMessage("new_connect", ""));
+            socket.send(makeMessage("new_connect", document.cookie.split(";")[0].split("=")[0]));
             nownick = getjson['user'];
+            document.cookie=`cookie${nownick.slice(4)}=value`;
             return;
         case 'user_list':
             userList.innerHTML = ""
