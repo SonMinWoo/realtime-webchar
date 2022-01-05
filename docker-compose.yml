@@ -1,9 +1,15 @@
-version: '2.1'
+version: "2.1"
 
 services:
-  redis_service:
-    image: 'redis'
+  redis:
+    image: "redis"
+    container_name: "redis"
+    ports:
+      - "6379:6379"
   test:
     build: .
+    container_name: "webchat"
     ports: 
       - "8090:8080"
+    links:
+      - "redis"

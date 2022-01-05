@@ -15,7 +15,7 @@ import aioredis
 here = Path(__file__).resolve().parent
 
 async def redis_conn(key):
-    redis = aioredis.from_url("redis_service://localhost")
+    redis = aioredis.from_url("redis://localhost")
     key = 'cookie'+key
     value = await redis.get(key)
     if value == None:
