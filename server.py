@@ -46,8 +46,12 @@ async def change_nick(
 
     redis = aioredis.from_url("redis://{}".format(REDIS_HOST))
     value = await redis.get(new_nick)
+
     if value == None:
         await redis.set(new_nick, password)
+    elif value.decode('utf-8') == password:
+        app['websockets'][new_nick] = app['websockets'].pop(old_nick)
+        return {'action': 'set_nick', 'success': True, 'message': ''}, True
     else:
         return (
             {'action': 'set_nick', 'success': False, 'message': 'Name already in use.'},
@@ -97,9 +101,9 @@ async def ws_chat(request: Request) -> web.WebSocketResponse:
 
                     if action == 'set_nickname':
                         new_nickname = message_json.get('nick')[0]
-                        password = message_json.get('nick')[1]
+                        new_password = message_json.get('nick')[1]
                         return_body, success = await change_nick(
-                            app=request.app, new_nick=new_nickname, old_nick=user, password=password
+                            app=request.app, new_nick=new_nickname, old_nick=user, password=new_password
                         )
                         if not success:
                             await current_websocket.send_json(return_body)
