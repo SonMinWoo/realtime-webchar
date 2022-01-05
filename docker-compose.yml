@@ -1,4 +1,4 @@
-version: "2.1"
+version: "3.9"
 
 services:
   redis:
@@ -6,10 +6,10 @@ services:
     container_name: "redis"
     ports:
       - "6379:6379"
-  test:
+  chat-container:
     build: .
     container_name: "webchat"
+    environment:
+      - REDIS_HOST=redis
     ports: 
       - "8090:8080"
-    links:
-      - "redis"

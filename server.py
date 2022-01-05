@@ -9,8 +9,9 @@ import jinja2
 import aiohttp_jinja2
 import random
 import aioredis
+import os
 
-
+REDIS_HOST = os.environ.get('REDIS_HOST', '127.0.0.1')
 
 here = Path(__file__).resolve().parent
 
@@ -43,7 +44,7 @@ async def change_nick(
     app: web.Application, new_nick: str, old_nick: str, password: str
 ) -> Tuple[Dict[str, Union[str, bool]], bool]:
 
-    redis = aioredis.from_url("redis://localhost")
+    redis = aioredis.from_url("redis://{}".format(REDIS_HOST))
     value = await redis.get(new_nick)
     if value == None:
         await redis.set(new_nick, password)
