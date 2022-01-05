@@ -50,6 +50,7 @@ socket.addEventListener("message", (message) => {
         case 'change_nick':
             li.innerText = `${getjson['from_user']} is changed nickname to ${getjson['to_user']}`;
             socket.send(makeMessage("user_list", ""));
+            nownick = getjson['to_user'];
             break;
         case 'connecting':
             socket.send(makeMessage("new_connect", document.cookie.split(";")[0].split("=")[0]));
@@ -91,9 +92,11 @@ function handleSubmit(event) {
 
 function handleNickSubmit(event) {
     event.preventDefault();
-    const input = nickForm.querySelector("input");
-    socket.send(makeMessage("nick", input.value));
-    input.value = "";
+    const inputNick = nickForm.querySelector(".nickname-input");
+    const inputPass = nickForm.querySelector(".password-input");
+    socket.send(makeMessage("nick", [inputNick.value, inputPass.value]));
+    inputNick.value = "";
+    inputPass.value = "";
 }
 
 messageForm.addEventListener("submit", handleSubmit);

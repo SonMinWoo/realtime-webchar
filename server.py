@@ -15,15 +15,16 @@ import aioredis
 here = Path(__file__).resolve().parent
 
 async def redis_conn(key):
-    redis = aioredis.from_url("redis://localhost")
-    key = 'cookie'+key
-    value = await redis.get(key)
-    if value == None:
-        await redis.set(key, "visited")
-        return "new"
-    else:
-        return "visited"
-    redis.close()
+    if(str(type(key)) == "<class 'str'>"):
+        redis = aioredis.from_url("redis://localhost")
+        key = 'cookie'+key
+        value = await redis.get(key)
+        if value == None:
+            await redis.set(key, "visited")
+            return "new"
+        else:
+            return "visited"
+        redis.close()
 
 async def index_handler(request: Request) -> web.Response:
     context = {}
@@ -39,8 +40,18 @@ async def broadcast(app: web.Application, message: dict) -> None:
         await ws[1].send_json(message)
 
 async def change_nick(
-    app: web.Application, new_nick: str, old_nick: str
+    app: web.Application, new_nick: str, old_nick: str, password: str
 ) -> Tuple[Dict[str, Union[str, bool]], bool]:
+
+    redis = aioredis.from_url("redis://localhost")
+    value = await redis.get(new_nick)
+    if value == None:
+        await redis.set(new_nick, password)
+    else:
+        return (
+            {'action': 'set_nick', 'success': False, 'message': 'Name already in use.'},
+            False,
+        )
 
     if new_nick in app['websockets'].keys():
         return (
@@ -84,8 +95,10 @@ async def ws_chat(request: Request) -> web.WebSocketResponse:
                         )
 
                     if action == 'set_nickname':
+                        new_nickname = message_json.get('nick')[0]
+                        password = message_json.get('nick')[1]
                         return_body, success = await change_nick(
-                            app=request.app, new_nick=message_json.get('nick'), old_nick=user
+                            app=request.app, new_nick=new_nickname, old_nick=user, password=password
                         )
                         if not success:
                             await current_websocket.send_json(return_body)
@@ -96,15 +109,14 @@ async def ws_chat(request: Request) -> web.WebSocketResponse:
                                 message={
                                     'action': 'change_nick',
                                     'from_user': user,
-                                    'to_user': message_json.get('nick'),
+                                    'to_user': new_nickname,
                                 },
                             )  
-                            user = message_json.get('nick')
+                            user = new_nickname
 
                     elif action == 'user_list':
                         user_list =  {'action': 'user_list', 'success': True, 'users': list(app['websockets'].keys())}
                         nowuser = message_json.get('cookie')
-                        print(await redis_conn(nowuser))
                         await current_websocket.send_json(user_list)
 
                     elif action == 'new_message':
